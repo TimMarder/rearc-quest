@@ -1,0 +1,17 @@
+# runtime / shared
+boto3>=1.39.0
+requests>=2.32.4
+
+# analytics 
+pyspark==3.5.1
+
+# infrastructure-as-code (Python CDK)
+aws-cdk-lib==2.202.0
+constructs>=10.4.2
+
+# developer tooling / tests
+pytest>=8.4.1
+moto[all]>=5.1.6
+black>=25.1.0
+ruff>=0.4.0
+jupyterlab>=4.2.0
