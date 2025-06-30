@@ -3,7 +3,7 @@ import os
 
 import aws_cdk as cdk
 
-from rearc_quest.rearc_quest_stack import RearcQuestStack
+from src.rearc_quest_stack import RearcQuestStack
 
 
 app = cdk.App()
