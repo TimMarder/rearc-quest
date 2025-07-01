@@ -3,6 +3,8 @@ import re
 import requests
 import boto3
 from urllib.parse import urljoin
+from datetime import timezone, datetime
+import hashlib
 
 BLS_ROOT = "https://download.bls.gov/pub/time.series/pr/"
 HEADERS = {
@@ -11,47 +13,60 @@ HEADERS = {
         "+mailto:timmarder@gmail.com)"
     )
 }
-
 S3_BUCKET = os.environ.get("BUCKET")  # Set this before running
 s3 = boto3.client("s3")
 
-def list_remote_files():
-    print("Fetching BLS index...")
-    index = requests.get(BLS_ROOT, headers=HEADERS, timeout=30).text
-    files = re.findall(
-        r'<a\s+href="[^"]*/([^"/]+)"',
-        index,
+def get_remote_manifest():
+    html = requests.get(BLS_ROOT, headers=HEADERS, timeout=30).text
+    rows = re.findall(
+        r'(\d+/\d+/\d+\s+\d+:\d+\s+\w+)\s+(\d+)\s+<a\s+href="[^"]*/([^"/]+)"',
+        html,
         flags=re.IGNORECASE,
     )
-    print(f"Found {len(files)} remote files")
-    return files
+    manifest = {}
+    for datestr, size, fname in rows:
+        ts = (
+            datetime.strptime(datestr, "%m/%d/%Y %I:%M %p")
+            .replace(tzinfo=timezone.utc)
+        )
+        manifest[fname] = (int(size), ts)
+    return manifest
 
-def list_s3_keys():
+def get_s3_manifest():
     paginator = s3.get_paginator("list_objects_v2")
-    page_iterator = paginator.paginate(Bucket=S3_BUCKET)
-    for page in page_iterator:
+    manifest: dict[str, tuple[int, datetime]] = {}
+
+    for page in paginator.paginate(Bucket=S3_BUCKET):
         for obj in page.get("Contents", []):
-            yield obj["Key"]
+            last_modified_utc = obj["LastModified"].astimezone(timezone.utc)
+            manifest[obj["Key"]] = (obj["Size"], last_modified_utc)
+
+    return manifest
 
 def sync():
-    remote_files = list_remote_files()
-    existing_keys = set(list_s3_keys())
+    remote = get_remote_manifest()
+    local  = get_s3_manifest()
 
-    for filename in remote_files:
-        if filename.endswith("/") or filename in existing_keys:
-            continue  # skip folders and already-uploaded files
-        url = urljoin(BLS_ROOT, filename)
-        print(f"Fetching {url}")
-        res = requests.get(url, headers=HEADERS, timeout=30)
-        res.raise_for_status()
+    for fname, (r_size, r_time) in remote.items():
+        l_meta = local.get(fname)
+        if l_meta is None:
+            action = "ADD"
+        elif l_meta[0] != r_size or abs((r_time - l_meta[1]).total_seconds()) > 1:
+            action = "UPDATE"
+        else:
+            continue
+        url = urljoin(BLS_ROOT, fname)
+        obj = requests.get(url, headers=HEADERS, timeout=60).content
+        s3.put_object(Bucket=S3_BUCKET, Key=fname, Body=obj, Metadata={"source": "bls"})
+        print(f"{action}: {fname}")
 
-        s3.put_object(
+    to_delete = [k for k in local.keys() if k not in remote]
+    if to_delete:
+        print("DELETE:", ", ".join(to_delete))
+        s3.delete_objects(
             Bucket=S3_BUCKET,
-            Key=filename,
-            Body=res.content,
-            Metadata={"source": "bls"}
+            Delete={"Objects": [{"Key": k} for k in to_delete]}
         )
-        print(f"Uploaded to s3://{S3_BUCKET}/{filename}")
 
 if __name__ == "__main__":
     sync()
