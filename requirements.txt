@@ -4,6 +4,9 @@ requests>=2.32.4
 
 # analytics 
 pyspark==3.5.1
+pandas==2.3.0
+fsspec==2025.5.1
+s3fs>=2025.5.1
 
 # infrastructure-as-code (Python CDK)
 aws-cdk-lib==2.202.0
