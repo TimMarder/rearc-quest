@@ -16,16 +16,16 @@ class RearcQuestStack(Stack):
 
         layer = _lambda.LayerVersion(
             self, "DepsLayer",
-            code=_lambda.Code.from_asset("layer"),
+            code=_lambda.Code.from_asset("requests_layer"),
             compatible_runtimes=[_lambda.Runtime.PYTHON_3_11],
-            description="Layer with external Python dependencies"
+            description="Layer with external requests dependencies"
         )
 
         pandas_numpy_layer = _lambda.LayerVersion(
             self, "PandasNumpyLayer",
-            code=_lambda.Code.from_asset("lambda_layers/pandas_numpy.zip"),
+            code=_lambda.Code.from_asset("pandas_numpy_layer/pandas_numpy.zip"),
             compatible_runtimes=[_lambda.Runtime.PYTHON_3_11],
-            description="Layer with pandas and numpy",
+            description="Layer with pandas and numpy dependencies",
         )
 
         # 1. Bucket

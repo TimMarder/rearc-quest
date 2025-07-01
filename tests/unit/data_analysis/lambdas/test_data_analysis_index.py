@@ -1,4 +1,3 @@
-# tests/unit/lambdas/test_index.py
 import json, pytest, boto3
 from moto import mock_aws
 from src.data_analysis.lambdas import index

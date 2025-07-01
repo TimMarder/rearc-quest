@@ -4,8 +4,8 @@ __pycache__
 .pytest_cache
 .venv
 *.egg-info
-lambda_layers
-layer
+pandas_numpy_layer
+requests_layer
 
 # CDK asset staging directory
 .cdk.staging
