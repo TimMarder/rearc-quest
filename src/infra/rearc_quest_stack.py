@@ -14,6 +14,13 @@ class RearcQuestStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
 
+        layer = _lambda.LayerVersion(
+            self, "DepsLayer",
+            code=_lambda.Code.from_asset("layer"),
+            compatible_runtimes=[_lambda.Runtime.PYTHON_3_11],
+            description="Layer with external Python dependencies"
+        )
+
         # 1. Bucket
         bucket = s3.Bucket(self, "DataBucket", versioned=True)
 
@@ -21,10 +28,11 @@ class RearcQuestStack(Stack):
         etl_fn = _lambda.Function(
             self, "EtlLambda",
             runtime=_lambda.Runtime.PYTHON_3_11,
-            handler="index.handler",
-            code=_lambda.Code.from_asset("src/data_fetch"),
+            handler="data_fetch.lambdas.index.handler",
+            code=_lambda.Code.from_asset("src"),
             environment={"BUCKET": bucket.bucket_name},
             timeout=Duration.minutes(5),
+            layers=[layer],
         )
         bucket.grant_read_write(etl_fn)
 
@@ -42,10 +50,11 @@ class RearcQuestStack(Stack):
         analytics_fn = _lambda.Function(
             self, "AnalyticsLambda",
             runtime=_lambda.Runtime.PYTHON_3_11,
-            handler="index.handler",
-            code=_lambda.Code.from_asset("src/data_analysis"),
+            handler="data_analysis.lambdas.index.handler",
+            code=_lambda.Code.from_asset("src"),
             environment={"BUCKET": bucket.bucket_name},
             timeout=Duration.minutes(5),
+            layers=[layer],
         )
         bucket.grant_read(analytics_fn)
         queue.grant_consume_messages(analytics_fn)
