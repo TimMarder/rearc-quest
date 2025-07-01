@@ -11,8 +11,6 @@ HEADERS = {
         "+mailto:timmarder@gmail.com)"
     )
 }
-S3_BUCKET = os.environ["BUCKET"]
-FILENAME = f"datausa/{date.today()}.json"
 s3 = boto3.client("s3")
 
 def fetch_data():
@@ -21,19 +19,27 @@ def fetch_data():
     res.raise_for_status()
     return res.json()
 
-def upload_to_s3(data):
+def upload_to_s3(data, *, bucket=None, key=None):
+    bucket = bucket or os.environ["BUCKET"]
+    key    = key or f"datausa/{date.today()}.json"
+
     s3.put_object(
-        Bucket=S3_BUCKET,
-        Key=FILENAME,
+        Bucket=bucket,
+        Key=key,
         Body=json.dumps(data, indent=2).encode("utf-8"),
         ContentType="application/json",
-        Metadata={"source": "datausa"}
+        Metadata={"source": "datausa"},
     )
-    print(f"Uploaded to s3://{S3_BUCKET}/{FILENAME}")
+    print(f"Uploaded to s3://{bucket}/{key}")
+    return key
+
+
+def fetch_and_store(*, bucket=None):
+    data = fetch_data()
+    return upload_to_s3(data, bucket=bucket)
 
 def main():
-    data = fetch_data()
-    upload_to_s3(data)
+    fetch_and_store()
 
 if __name__ == "__main__":
     main()

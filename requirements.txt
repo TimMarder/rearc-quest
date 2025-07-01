@@ -1,5 +1,6 @@
 # runtime / shared
-boto3>=1.39.0
+boto3==1.34.129
+botocore==1.34.129
 requests>=2.32.4
 
 # analytics 
@@ -18,3 +19,4 @@ moto[all]>=5.1.6
 black>=25.1.0
 ruff>=0.4.0
 jupyterlab>=4.2.0
+requests-mock>=1.11.0
