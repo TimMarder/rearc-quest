@@ -21,6 +21,13 @@ class RearcQuestStack(Stack):
             description="Layer with external Python dependencies"
         )
 
+        pandas_numpy_layer = _lambda.LayerVersion(
+            self, "PandasNumpyLayer",
+            code=_lambda.Code.from_asset("lambda_layers/pandas_numpy.zip"),
+            compatible_runtimes=[_lambda.Runtime.PYTHON_3_11],
+            description="Layer with pandas and numpy",
+        )
+
         # 1. Bucket
         bucket = s3.Bucket(self, "DataBucket", versioned=True)
 
@@ -54,7 +61,7 @@ class RearcQuestStack(Stack):
             code=_lambda.Code.from_asset("src"),
             environment={"BUCKET": bucket.bucket_name},
             timeout=Duration.minutes(5),
-            layers=[layer],
+            layers=[pandas_numpy_layer],
         )
         bucket.grant_read(analytics_fn)
         queue.grant_consume_messages(analytics_fn)

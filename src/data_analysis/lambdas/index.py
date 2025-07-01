@@ -1,10 +1,9 @@
 import json, os, boto3, pandas as pd
 from io import BytesIO
 
-s3 = boto3.client("s3")
-BUCKET = os.environ["BUCKET"]
-
 def _load_pop_df(key: str) -> pd.DataFrame:
+    s3 = boto3.client("s3")
+    BUCKET = os.environ["BUCKET"]
     obj  = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
     data = json.loads(obj)
     return (
@@ -14,6 +13,8 @@ def _load_pop_df(key: str) -> pd.DataFrame:
     )
 
 def _load_bls_df() -> pd.DataFrame:
+    s3 = boto3.client("s3")
+    BUCKET = os.environ["BUCKET"]
     obj = s3.get_object(Bucket=BUCKET, Key="pr.data.0.Current")["Body"].read()
     df  = (
         pd.read_csv(BytesIO(obj), sep="\t")
@@ -37,11 +38,30 @@ def run_reports(pop, bls):
            .sort_values(['series_id','year_sum'], ascending=[True,False])
            .drop_duplicates('series_id')
     )
+    best_year["year_sum"] = best_year["year_sum"].round(1)
     print("Best-year sample:\n", best_year.head())
 
+    # 3) PRS30006032 / Q01 joined with population
+    target = bls.query(
+        "series_id == 'PRS30006032' and period == 'Q01'"
+    )[["series_id", "year", "period", "value"]]
+
+    joined = (
+        target.merge(pop, on="year", how="left")
+              .dropna(subset=["population"])
+              .rename(columns={"population": "Population"})
+              .astype({"Population": "int64"})
+              .sort_values("year")
+              .reset_index(drop=True)
+    )
+    print("Joined sample (PRS30006032 Q01):\n", joined.head())
+
 def handler(event, context):
-    body = json.loads(event["Records"][0]["body"])
-    key  = body["Records"][0]["s3"]["object"]["key"]
+    try:
+        body = json.loads(event["Records"][0]["body"])
+        key  = body["Records"][0]["s3"]["object"]["key"]
+    except (KeyError, IndexError, json.JSONDecodeError):
+        raise ValueError(f"Could not find S3 key in event payload: {event}")
     print("Triggered for:", key)
 
     pop_df = _load_pop_df(key)
