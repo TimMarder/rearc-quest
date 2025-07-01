@@ -1,6 +1,6 @@
 import json, requests_mock, os, importlib
 os.environ["BUCKET"] = "test-bucket"
-from src import part2_datausa_fetch as datausa_fetch
+from src.data_fetch import part2_datausa_fetch as datausa_fetch
 
 importlib.reload(datausa_fetch)
 

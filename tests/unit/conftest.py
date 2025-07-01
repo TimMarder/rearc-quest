@@ -1,6 +1,10 @@
-import boto3, pytest, os
+import boto3, pytest, sys
 from moto import mock_aws
+from pathlib import Path
 
+SRC_PATH = Path(__file__).resolve().parent / "src"
+if SRC_PATH.exists():
+    sys.path.insert(0, str(SRC_PATH))
 BUCKET = "test-bucket"
 
 @pytest.fixture

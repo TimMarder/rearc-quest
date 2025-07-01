@@ -1,5 +1,5 @@
 import requests_mock, os, importlib
-from src import part1_bls_fetch as bls_fetch
+from src.data_fetch import part1_bls_fetch as bls_fetch
 
 os.environ["BUCKET"] = "test-bucket"
 importlib.reload(bls_fetch) 
