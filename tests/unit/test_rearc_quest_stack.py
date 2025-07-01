@@ -1,7 +1,7 @@
 import aws_cdk as core
 import aws_cdk.assertions as assertions
 
-from src.rearc_quest_stack import RearcQuestStack
+from src.infra.rearc_quest_stack import RearcQuestStack
 
 # example tests. To run these tests, uncomment this file along with the example
 # resource in rearc_quest/rearc_quest_stack.py
