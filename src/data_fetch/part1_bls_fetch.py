@@ -4,7 +4,6 @@ import requests
 import boto3
 from urllib.parse import urljoin
 from datetime import timezone, datetime
-import hashlib
 
 BLS_ROOT = "https://download.bls.gov/pub/time.series/pr/"
 HEADERS = {
@@ -39,7 +38,10 @@ def get_s3_manifest():
     for page in paginator.paginate(Bucket=S3_BUCKET):
         for obj in page.get("Contents", []):
             last_modified_utc = obj["LastModified"].astimezone(timezone.utc)
-            manifest[obj["Key"]] = (obj["Size"], last_modified_utc)
+            key = obj["Key"]
+            if key.startswith("datausa/"):
+                continue
+            manifest[key] = (obj["Size"], last_modified_utc)
 
     return manifest
 
