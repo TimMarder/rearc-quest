@@ -245,7 +245,7 @@ python src/data_fetch/part1_bls_fetch.py
 python src/data_fetch/part2_datausa_fetch.py
 
 # Notebook analysis
-jupyter lab src/data_analysis/notebooks/part3.ipynb
+jupyter lab src/data_analysis/notebooks/part3_data_analytics.ipynb
 ```
 
 ---
