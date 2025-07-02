@@ -66,7 +66,7 @@ rearc-quest/
 ## ✅ Part 1 – BLS Dataset Sync
 
 - **Source:** https://download.bls.gov/pub/time.series/pr/
-- **Destination:** `s3://rearc-quest-tim`
+- **Destination:** `s3://rearcqueststack-databuckete3889a50-k7v0kjvuiqpy`
 - **Public S3 Bucket (read-only):** https://rearcqueststack-databuckete3889a50-k7v0kjvuiqpy.s3.amazonaws.com/
 - **Lambda:** `etl_lambda`
 - **Run Frequency:** Daily (via EventBridge)
