@@ -1,7 +1,7 @@
 import json, os, boto3, pandas as pd
 from io import BytesIO
 
-def _load_pop_df(key: str) -> pd.DataFrame:
+def _load_pop_df(key: str):
     s3 = boto3.client("s3")
     BUCKET = os.environ["BUCKET"]
     obj  = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
@@ -12,7 +12,7 @@ def _load_pop_df(key: str) -> pd.DataFrame:
         .astype({"year": int})
     )
 
-def _load_bls_df() -> pd.DataFrame:
+def _load_bls_df():
     s3 = boto3.client("s3")
     BUCKET = os.environ["BUCKET"]
     obj = s3.get_object(Bucket=BUCKET, Key="pr.data.0.Current")["Body"].read()

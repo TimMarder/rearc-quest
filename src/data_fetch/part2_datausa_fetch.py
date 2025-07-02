@@ -1,7 +1,4 @@
-import os
-import json
-import requests
-import boto3
+import os, json, requests, boto3
 from datetime import date
 
 API_URL = "https://datausa.io/api/data?drilldowns=Nation&measures=Population"

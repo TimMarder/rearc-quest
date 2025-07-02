@@ -3,7 +3,7 @@
 **Author:** Tim Marder  
 **Region:** `us-east-1`  
 **Repository:** https://github.com/TimMarder/rearc-quest  
-**Public S3 Bucket (read-only):** https://rearc-quest-tim.s3.amazonaws.com/
+**Public S3 Bucket (read-only):** https://rearcqueststack-databuckete3889a50-k7v0kjvuiqpy.s3.amazonaws.com/
 
 ---
 
@@ -67,7 +67,7 @@ rearc-quest/
 
 - **Source:** https://download.bls.gov/pub/time.series/pr/
 - **Destination:** `s3://rearc-quest-tim`
-- **Public S3 Bucket (read-only):** https://rearc-quest-tim.s3.amazonaws.com/
+- **Public S3 Bucket (read-only):** https://rearcqueststack-databuckete3889a50-k7v0kjvuiqpy.s3.amazonaws.com/
 - **Lambda:** `etl_lambda`
 - **Run Frequency:** Daily (via EventBridge)
 

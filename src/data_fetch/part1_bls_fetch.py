@@ -1,7 +1,4 @@
-import os
-import re
-import requests
-import boto3
+import os, re, requests, boto3
 from urllib.parse import urljoin
 from datetime import timezone, datetime
 
