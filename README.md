@@ -9,11 +9,11 @@
 
 ## 📌 Overview
 
-This project is a complete solution to the [Rearc Data Quest](https://github.com/rearc-data/quest). It showcases a robust, production-grade data pipeline deployed via AWS CDK. The pipeline involves:
+This project is a complete solution to the [Rearc Data Quest](https://github.com/rearc-data/quest). It showcases a data pipeline deployed via AWS CDK. The pipeline involves:
 
 - Programmatic scraping of BLS data (CSV)
 - Fetching JSON from the DataUSA API
-- Storing outputs in Versioned S3 Bucket
+- Storing outputs into a versioned S3 Bucket
 - Triggering downstream analysis via SQS + Lambda
 - Logging computed metrics to CloudWatch
 - Infrastructure fully managed via IaC (AWS CDK)
@@ -46,8 +46,8 @@ rearc-quest/
 ├── requirements.txt
 ├── src/
 │   ├── data_fetch/
-│   │   ├── part1_bls_fetch.py
-│   │   ├── part2_datausa_fetch.py
+│   │   ├── part1_bls_fetch.py          # BLS Sync helper
+│   │   ├── part2_datausa_fetch.py      # DataUsa Fetch helper
 │   │   ├── lambdas/            
 │   │   │   └── index.py                # ETL Lambda handler
 │   ├── data_analysis/
@@ -86,7 +86,7 @@ rearc-quest/
 ## ✅ Part 2 – Population API Fetch
 
 - **API:** [DataUSA](https://datausa.io/api/data?drilldowns=Nation&measures=Population)
-- **Destination S3 Key:** `datausa/YYYY-MM-DD.json`
+- **Destination S3 Key:** `datausa/<YYYY-MM-DD>.json` *(Will use latest day)*
 - **Stored As:** JSON
 - **Metadata:** Includes execution timestamp and lambda source
 
@@ -120,6 +120,7 @@ rearc-quest/
       "name": "acs_yg_total_population_5",
       "substitutions": []
     }
+}
 ```
 
 ---
@@ -138,6 +139,9 @@ Implemented as:
 | Mean   | 317,437,383 |
 | Std‑dev | 4,257,090 |
 
+*(Results also logged to CloudWatch)*  
+*(Results also saved as outputs in IPYNB file)*
+
 ### 3.2 Best Year by Series (sum of quarterly *value*)
 
 | series_id   | best_year | year_sum |
@@ -148,7 +152,8 @@ Implemented as:
 | PRS30006021 | 2010      |   17.7 |
 | PRS30006022 | 2010      |   12.4 |
 
-*(Full table also logged to CloudWatch)*
+*(Full table also logged to CloudWatch)*  
+*(Results also saved as outputs in IPYNB file)*
 
 ### 3.3 Joined Report (target = `PRS30006032`, `Q01`)
 
@@ -160,7 +165,8 @@ Implemented as:
 | PRS30006032 | 2016 | Q01    |  -1.4 | 318 558 162 |
 | PRS30006032 | 2017 | Q01    |   0.9 | 321 004 407 |
 
-*(Full table also logged to CloudWatch)*
+*(Full table also logged to CloudWatch)*  
+*(Results also saved as outputs in IPYNB file)*
 
 ---
 
@@ -172,22 +178,28 @@ Implemented as:
 | **ETL Lambda** | `etl_lambda` | Combines Part 1 & 2 tasks |
 | **Analytics Lambda** | `analytics_lambda` | Executes Part 3 logic |
 | **Lambda Layer** | `PandasNumpyLayer` | Pre‑built via Docker with pandas/NumPy |
+| **Lambda Layer** | `DepsLayer` | Requests dependencies for ETL functionality |
 | **SQS Queue** | `PopQueue` | Event source for analytics Lambda |
 | **EventBridge Rule** | `DailyRule` | Triggers ETL Lambda at 00:00 UTC |
 | **S3 → SQS** | `S3NotificationToSQS` | Sends notifications for `datausa/*.json` |
 
 #### CDK Stack Configuration: [rearc_quest_stack.py](https://github.com/TimMarder/rearc-quest/blob/main/src/infra/rearc_quest_stack.py)
 
+### CloudFormation Stack:
+
+![Cloudformation Stack](docs/cloudformation-stack.jpg)
+
 ---
 
-## 🧪 Unit‑Testing Strategy
+## 🧪 Unit Testing
 
 - **Frameworks:** `pytest`, `moto`, `requests‑mock`
 - **Coverage:** Lambdas, helpers, CDK stack validation
 - **Quick run:**  
 
   ```bash
-  PYTHONPATH=src pytest tests/unit
+  PYTHONPATH=src
+  pytest tests/unit
   ```
 
 | Suite | Tests | Result |
@@ -252,6 +264,6 @@ jupyter lab src/data_analysis/notebooks/part3_data_analytics.ipynb
 
 ## 📄 Final Notes
 
-I ensured all major parts of the Rearc Data Quest were completed according to spec. I also introduced additional best practices (versioning, test isolation, modular imports, logging) to reflect how I would design production systems. More advanced features and more detailed implementation of each aspect would be done if time allowed.
+I ensured all major parts of the Rearc Data Quest were completed according to spec. I also introduced additional best practices (versioning, test isolation, modular imports, logging) to reflect how I would design production systems. More advanced features and more detailed implementation and robust documentation of each aspect would be done if time allowed.
 
 I really enjoyed working on this quest and I would like to thank you in advance for taking the time to review my submission. If any questions arise or if something needs to be explained, feel free to reach out to me via marder.tim@gmail.com.

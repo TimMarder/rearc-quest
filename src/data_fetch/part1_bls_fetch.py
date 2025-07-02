@@ -12,7 +12,7 @@ HEADERS = {
         "+mailto:timmarder@gmail.com)"
     )
 }
-S3_BUCKET = os.environ.get("BUCKET")  # Set this before running
+S3_BUCKET = os.environ.get("BUCKET")
 s3 = boto3.client("s3")
 
 def get_remote_manifest():
