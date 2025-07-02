@@ -39,7 +39,7 @@ def run_reports(pop, bls):
            .drop_duplicates('series_id')
     )
     best_year["year_sum"] = best_year["year_sum"].round(1)
-    print("Best-year sample:\n", best_year.head())
+    print("Best-year sample:\n", best_year)
 
     # 3) PRS30006032 / Q01 joined with population
     target = bls.query(
@@ -54,7 +54,7 @@ def run_reports(pop, bls):
               .sort_values("year")
               .reset_index(drop=True)
     )
-    print("Joined sample (PRS30006032 Q01):\n", joined.head())
+    print("Joined sample (PRS30006032 Q01):\n", joined)
 
 def handler(event, context):
     key: str | None = None
