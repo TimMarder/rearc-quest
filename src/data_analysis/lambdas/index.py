@@ -57,12 +57,25 @@ def run_reports(pop, bls):
     print("Joined sample (PRS30006032 Q01):\n", joined.head())
 
 def handler(event, context):
-    try:
-        body = json.loads(event["Records"][0]["body"])
-        key  = body["Records"][0]["s3"]["object"]["key"]
-    except (KeyError, IndexError, json.JSONDecodeError):
-        raise ValueError(f"Could not find S3 key in event payload: {event}")
-    print("Triggered for:", key)
+    key: str | None = None
+
+    for record in event.get("Records", []):
+        body = json.loads(record.get("body", "{}"))
+
+        if body.get("Event") == "s3:TestEvent":
+            print("Skipping S3 test event")
+            return {"status": "ignored-test-event"}
+
+        try:
+            key = body["Records"][0]["s3"]["object"]["key"]
+            print("Triggered for:", key)
+            break
+        except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+            continue
+
+    if key is None:
+        print("No real S3 event found - message ignored")
+        return {"status": "ignored-invalid-s3-event"}
 
     pop_df = _load_pop_df(key)
     bls_df = _load_bls_df()
